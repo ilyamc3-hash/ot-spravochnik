@@ -1,0 +1,38 @@
+{
+  "name": "ОТ Навигатор — справочник по охране труда",
+  "short_name": "ОТ Навигатор",
+  "description": "Личный справочник по газоопасным и огневым работам, обучению, РПО и АПК",
+  "start_url": "/ot-spravochnik/",
+  "scope": "/ot-spravochnik/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F7F8FA",
+  "theme_color": "#E8612A",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
