@@ -1309,11 +1309,10 @@ function SectionCard({ s, onPress }) {
   const emojis = { or: "🔥", gor: "💨", rv: "🪜", training: "🎓", rpo: "📐", apk: "🔍" };
   return (
     <div
+      onClick={() => !s.locked && onPress(s)}
       onMouseDown={() => setPressed(true)}
-      onMouseUp={() => { setPressed(false); !s.locked && onPress(s); }}
+      onMouseUp={() => setPressed(false)}
       onMouseLeave={() => setPressed(false)}
-      onTouchStart={() => setPressed(true)}
-      onTouchEnd={() => { setPressed(false); !s.locked && onPress(s); }}
       style={{
         background: C.white, borderRadius: 18,
         border: `1.5px solid ${pressed && !s.locked ? s.color + "80" : C.border}`,
@@ -1350,8 +1349,17 @@ function SectionCard({ s, onPress }) {
 
 
 // --- Global Search Screen ---
-function GlobalSearchScreen({ onOpenSection, favorites, onToggleFavorite }) {
+function GlobalSearchScreen({ onOpenSection, favorites, onToggleFavorite, history, onCommitQuery }) {
   const [query, setQuery] = useState("");
+
+  // Save the query to search history once the user pauses typing, rather than on
+  // every keystroke — avoids filling history with incomplete prefixes.
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) return;
+    const t = setTimeout(() => onCommitQuery(trimmed), 600);
+    return () => clearTimeout(t);
+  }, [query, onCommitQuery]);
 
   const results = query.trim().length > 1
     ? searchIndex.filter(i =>
@@ -1397,10 +1405,31 @@ function GlobalSearchScreen({ onOpenSection, favorites, onToggleFavorite }) {
 
       <div style={{ padding: "16px 20px" }}>
         {query.trim().length <= 1 ? (
-          <div style={{ textAlign: "center", color: C.text3, padding: "60px 0", fontSize: 14, lineHeight: 1.6 }}>
-            Поиск по {searchIndex.length} пунктам НТД<br/>
-            во всех открытых разделах
-          </div>
+          history && history.length > 0 ? (
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: C.text3, textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 10 }}>
+                Недавние запросы
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {history.map((h, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setQuery(h)}
+                    style={{
+                      padding: "7px 12px", borderRadius: 20,
+                      border: `1px solid ${C.border}`, background: C.white,
+                      fontSize: 13, color: C.text2, cursor: "pointer",
+                    }}
+                  >{h}</button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div style={{ textAlign: "center", color: C.text3, padding: "60px 0", fontSize: 14, lineHeight: 1.6 }}>
+              Поиск по {searchIndex.length} пунктам НТД<br/>
+              во всех открытых разделах
+            </div>
+          )
         ) : results.length === 0 ? (
           <div style={{ textAlign: "center", color: C.text3, padding: "60px 0", fontSize: 15 }}>
             Ничего не найдено по «{query}»
@@ -1529,12 +1558,120 @@ function FavoritesScreen({ favorites, onToggleFavorite, onOpenSection }) {
   );
 }
 
+// ─── Profile screen ───────────────────────────────────────────
+function ProfileScreen({ favorites, onClearData }) {
+  const readySections = sections.filter(s => !s.locked).length;
+
+  const handleClear = () => {
+    const confirmed = window.confirm(
+      "Удалить избранное и историю поиска? Это действие нельзя отменить."
+    );
+    if (confirmed) onClearData();
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "-apple-system, 'Inter', sans-serif", paddingBottom: 100 }}>
+      <div style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: "48px 20px 16px", position: "sticky", top: 0, zIndex: 20 }}>
+        <div style={{ fontSize: 24, fontWeight: 800, color: C.text, letterSpacing: -0.6 }}>Профиль</div>
+      </div>
+
+      <div style={{ padding: "20px 20px" }}>
+        <div style={{
+          background: C.white, borderRadius: 16, border: `1px solid ${C.border}`,
+          padding: "18px 16px", display: "flex", alignItems: "center", gap: 14,
+          boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+        }}>
+          <div style={{
+            width: 52, height: 52, borderRadius: "50%", background: C.gor + "15",
+            border: `1.5px solid ${C.gor}30`, display: "flex", alignItems: "center",
+            justifyContent: "center", fontSize: 20, fontWeight: 700, color: C.gor, flexShrink: 0,
+          }}>И</div>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: C.text }}>Инженер по ОТ</div>
+            <div style={{ fontSize: 12.5, color: C.text3, marginTop: 2 }}>Локальный профиль на устройстве</div>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+          {[
+            { value: String(favorites.size),      label: "избранных" },
+            { value: String(readySections),        label: "разделов доступно" },
+            { value: String(searchIndex.length),   label: "пунктов НТД" },
+          ].map(s => (
+            <div key={s.label} style={{ flex: 1, background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: "13px 10px", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: C.gor, letterSpacing: -0.6, fontFamily: "monospace" }}>{s.value}</div>
+              <div style={{ fontSize: 10.5, color: C.text3, marginTop: 3, lineHeight: 1.3 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={handleClear}
+          style={{
+            width: "100%", marginTop: 20, padding: "14px 16px", borderRadius: 14,
+            border: `1.5px solid #FCA5A5`, background: C.warnBg, cursor: "pointer",
+            fontSize: 14, fontWeight: 600, color: C.warn,
+          }}
+        >
+          Очистить избранное и историю поиска
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// --- localStorage persistence (favorites, search history) ---
+// Wrapped in try/catch: localStorage throws in private/incognito mode in
+// some browsers, and we'd rather silently lose persistence than crash the app.
+const STORAGE_KEYS = {
+  favorites: "ot-navigator:favorites",
+  searchHistory: "ot-navigator:search-history",
+};
+const SEARCH_HISTORY_LIMIT = 8;
+
+function loadFromStorage(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function saveToStorage(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // ignore — e.g. private mode, storage disabled, quota exceeded
+  }
+}
+
 export default function App() {
   const [activeSection, setActiveSection] = useState(null);
   const [activeTab, setActiveTab] = useState("home");
   const [time, setTime] = useState(new Date());
   const [initialGroup, setInitialGroup] = useState(null);
-  const [favorites, setFavorites] = useState(() => new Set());
+  const [favorites, setFavorites] = useState(() => new Set(loadFromStorage(STORAGE_KEYS.favorites, [])));
+  const [searchHistory, setSearchHistory] = useState(() => loadFromStorage(STORAGE_KEYS.searchHistory, []));
+
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.favorites, Array.from(favorites));
+  }, [favorites]);
+
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.searchHistory, searchHistory);
+  }, [searchHistory]);
+
+  const commitSearchQuery = (q) => {
+    const trimmed = q.trim();
+    if (trimmed.length < 2) return;
+    setSearchHistory(prev => [trimmed, ...prev.filter(h => h.toLowerCase() !== trimmed.toLowerCase())].slice(0, SEARCH_HISTORY_LIMIT));
+  };
+
+  const clearLocalData = () => {
+    setFavorites(new Set());
+    setSearchHistory([]);
+  };
 
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 30000);
@@ -1570,7 +1707,22 @@ export default function App() {
   if (activeTab === "search") {
     return (
       <>
-        <GlobalSearchScreen onOpenSection={openSectionFromSearch} favorites={favorites} onToggleFavorite={toggleFavorite} />
+        <GlobalSearchScreen
+          onOpenSection={openSectionFromSearch}
+          favorites={favorites}
+          onToggleFavorite={toggleFavorite}
+          history={searchHistory}
+          onCommitQuery={commitSearchQuery}
+        />
+        <TabBar activeTab={activeTab} setActiveTab={setActiveTab} />
+      </>
+    );
+  }
+
+  if (activeTab === "profile") {
+    return (
+      <>
+        <ProfileScreen favorites={favorites} onClearData={clearLocalData} />
         <TabBar activeTab={activeTab} setActiveTab={setActiveTab} />
       </>
     );
@@ -1636,15 +1788,13 @@ export default function App() {
           </div>
         </div>
 
-        <div style={{ background: C.accent, borderRadius: 16, padding: "16px 18px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer", boxShadow: `0 4px 18px ${C.accent}40` }}>
+        <div style={{ background: C.accent, borderRadius: 16, padding: "16px 18px", display: "flex", alignItems: "center", gap: 14, opacity: 0.7, boxShadow: `0 4px 18px ${C.accent}40` }}>
           <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(255,255,255,0.18)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>🧠</div>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 15, color: C.white }}>Вопрос дня</div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginTop: 2 }}>Проверь знания · ~1 мин</div>
           </div>
-          <svg width="9" height="15" viewBox="0 0 9 15" fill="none">
-            <path d="M1.5 1.5l6 6-6 6" stroke="rgba(255,255,255,0.6)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <Pill color="#FFFFFF">СКОРО</Pill>
         </div>
       </div>
 
@@ -1670,18 +1820,15 @@ function TabBar({ activeTab, setActiveTab }) {
     }}>
       {tabs.map(item => {
         const active = activeTab === item.id;
-        const clickable = item.id === "home" || item.id === "search" || item.id === "favorites";
         return (
           <button
             key={item.id}
-            onClick={() => clickable && setActiveTab(item.id)}
+            onClick={() => setActiveTab(item.id)}
             style={{
-              background: "none", border: "none",
-              cursor: clickable ? "pointer" : "default",
+              background: "none", border: "none", cursor: "pointer",
               padding: "0 14px", display: "flex", flexDirection: "column",
               alignItems: "center", gap: 3,
               color: active ? C.gor : C.text3,
-              opacity: clickable ? 1 : 0.4,
             }}
           >
             <span style={{ fontSize: 22, lineHeight: 1 }}>{item.emoji}</span>
