@@ -360,63 +360,63 @@
         },
         {
           "id": 4,
-          "label": "Проведение",
-          "groupId": "conduct",
-          "refs": 6
-        },
-        {
-          "id": 5,
-          "label": "Контроль ВРЗ",
-          "groupId": "vrz",
-          "refs": 4
-        },
-        {
-          "id": 6,
-          "label": "Завершение",
-          "groupId": "finish",
-          "refs": 4
-        },
-        {
-          "id": 7,
           "label": "Организация работ",
           "groupId": "organize",
           "refs": 14
         },
         {
-          "id": 8,
+          "id": 5,
           "label": "Бригада",
           "groupId": "brigade",
           "refs": 1
         },
         {
-          "id": 9,
-          "label": "Удалённые объекты",
-          "groupId": "remote",
+          "id": 6,
+          "label": "Проведение",
+          "groupId": "conduct",
+          "refs": 6
+        },
+        {
+          "id": 7,
+          "label": "Контроль ВРЗ",
+          "groupId": "vrz",
           "refs": 4
         },
         {
-          "id": 10,
-          "label": "Продление",
-          "groupId": "prodlenie",
-          "refs": 1
-        },
-        {
-          "id": 11,
+          "id": 8,
           "label": "ОР на линейной части (ЛЧ)",
           "groupId": "lch",
           "refs": 5
         },
         {
-          "id": 12,
+          "id": 9,
           "label": "ГОР в составе ОР",
           "groupId": "gor_v_or",
           "refs": 6
         },
         {
-          "id": 13,
+          "id": 10,
           "label": "Пирофоры",
           "groupId": "pyrophores",
           "refs": 1
+        },
+        {
+          "id": 11,
+          "label": "Продление",
+          "groupId": "prodlenie",
+          "refs": 1
+        },
+        {
+          "id": 12,
+          "label": "Удалённые объекты",
+          "groupId": "remote",
+          "refs": 4
+        },
+        {
+          "id": 13,
+          "label": "Завершение",
+          "groupId": "finish",
+          "refs": 4
         }
       ],
       "detail": [
